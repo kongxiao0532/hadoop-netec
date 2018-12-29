@@ -9,6 +9,7 @@
 *.suo
 *.vcxproj.user
 *.patch
+*.class
 .idea
 .svn
 .classpath
