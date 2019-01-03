@@ -1,16 +1,12 @@
 package org.apache.hadoop.hdfs.protocol.datatransfer;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.hdfs.util.ByteUtils;
-import org.apache.hadoop.io.file.tfile.ByteArray;
 
 /**
  * Simplified information about reading a block
