@@ -60,7 +60,7 @@ public abstract class Receiver implements DataTransferProtocol {
   protected Receiver(Tracer tracer) {
     this.tracer = tracer;
   }
-
+  parseFrom
   /** Initialize a receiver for DataTransferProtocol with a socket. */
   protected void initialize(final DataInputStream in) {
     this.in = in;
@@ -130,6 +130,9 @@ public abstract class Receiver implements DataTransferProtocol {
     case REQUEST_SHORT_CIRCUIT_SHM:
       opRequestShortCircuitShm(in);
       break;
+    case READ_BLOCK_NETEC:
+      opReadBlockNetec();
+      break;
     default:
       throw new IOException("Unknown op " + op + " in data stream");
     }
@@ -141,6 +144,17 @@ public abstract class Receiver implements DataTransferProtocol {
     Long readahead = strategy.hasReadahead() ?
         strategy.getReadahead() : null;
     return new CachingStrategy(dropBehind, readahead);
+  }
+
+  /** Receive OP_READ_BLOCK_NETEC */
+  private void opReadBlockNetec() throws IOException {
+    NetECReadBlockProtocol proto = NetECReadBlockProtocol.parseFrom(in);
+    readBlockNetEC(
+      proto.getBlock(),
+      proto.getClientName(),
+      proto.getReadOffset(),
+      proto.getReadLen()
+    );
   }
 
   /** Receive OP_READ_BLOCK */

@@ -73,6 +73,20 @@ public interface DataTransferProtocol {
       final boolean sendChecksum,
       final CachingStrategy cachingStrategy) throws IOException;
 
+
+  /**
+   * Read a block for NetEC reconstruction.
+   *
+   * @param blk the block being read.
+   * @param clientName client's name.
+   * @param blockOffset offset of the block.
+   * @param length maximum number of bytes for this read.
+   */
+  void readBlockNetEC(final ExtendedBlock blk,
+      final String clientName,
+      final long blockOffset,
+      final long length) throws IOException;
+
   /**
    * Write a block to a datanode pipeline.
    * The receiver datanode of this call is the next datanode in the pipeline.
