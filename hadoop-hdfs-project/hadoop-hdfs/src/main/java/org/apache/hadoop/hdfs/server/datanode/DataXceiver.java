@@ -287,7 +287,7 @@ class DataXceiver extends Receiver implements Runnable {
         }
 
         opStartTime = monotonicNow();
-        processOp(op);
+        processOp(op, datanode.getDatanodeId());
         ++opsProcessed;
       } while ((peer != null) &&
           (!peer.isClosed() && dnConf.socketKeepaliveTimeout > 0));

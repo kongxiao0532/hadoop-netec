@@ -26,6 +26,7 @@ import java.io.IOException;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.StorageType;
+import org.apache.hadoop.hdfs.protocol.DatanodeID;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.hdfs.protocol.StripedBlockInfo;
@@ -60,7 +61,6 @@ public abstract class Receiver implements DataTransferProtocol {
   protected Receiver(Tracer tracer) {
     this.tracer = tracer;
   }
-  parseFrom
   /** Initialize a receiver for DataTransferProtocol with a socket. */
   protected void initialize(final DataInputStream in) {
     this.in = in;
@@ -98,7 +98,7 @@ public abstract class Receiver implements DataTransferProtocol {
   }
 
   /** Process op by the corresponding method. */
-  protected final void processOp(Op op) throws IOException {
+  protected final void processOp(Op op, DatanodeID id) throws IOException {
     switch(op) {
     case READ_BLOCK:
       opReadBlock();
@@ -131,7 +131,7 @@ public abstract class Receiver implements DataTransferProtocol {
       opRequestShortCircuitShm(in);
       break;
     case READ_BLOCK_NETEC:
-      opReadBlockNetec();
+      opReadBlockNetec(id);
       break;
     default:
       throw new IOException("Unknown op " + op + " in data stream");
@@ -147,8 +147,17 @@ public abstract class Receiver implements DataTransferProtocol {
   }
 
   /** Receive OP_READ_BLOCK_NETEC */
-  private void opReadBlockNetec() throws IOException {
-    NetECReadBlockProtocol proto = NetECReadBlockProtocol.parseFrom(in);
+  private void opReadBlockNetec(DatanodeID id) throws IOException {
+    NetECReadBlockProtocol proto;
+    while (true) {
+      proto = NetECReadBlockProtocol.parseFrom(in);
+      if (proto == null) {
+        LOG.error("Error in class Receiver.opReadBlockNetec, no corresponding proto header found.\n");
+        return;
+      }
+      if (proto.getDatanodeIP() == id.getIpAddr())
+        break;
+    }
     readBlockNetEC(
       proto.getBlock(),
       proto.getClientName(),
