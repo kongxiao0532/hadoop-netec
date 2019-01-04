@@ -561,10 +561,12 @@ class DataXceiver extends Receiver implements Runnable {
   }
 
   @Override
-  public void readBlockNetEC(final ExtendedBlock block,
+  public void readBlockNetEC(final ExtendedBlock[] blocks,
+      final DatanodeInfo[] sources /* always null */,
       final String clientName,
       final long blockOffset,
       final long length) throws IOException {
+    ExtendedBlock block = blocks[0];
     previousOpClientName = clientName;
     long read = 0;
     updateCurrentThreadName("Sending block " + block);
@@ -575,7 +577,7 @@ class DataXceiver extends Receiver implements Runnable {
     // BlockTokenIdentifier.AccessMode.READ);
 
     // send the block
-    BlockSender blockSender = null;
+    NetECBlockSender blockSender = null;
     DatanodeRegistration dnR =
       datanode.getDNRegistrationForBP(block.getBlockPoolId());
     final String clientTraceFmt =
@@ -588,9 +590,8 @@ class DataXceiver extends Receiver implements Runnable {
 
     try {
       try {
-        blockSender = new BlockSender(block, blockOffset, length,
-            true, false, sendChecksum, datanode, clientTraceFmt,
-            cachingStrategy);
+        blockSender = new NetECBlockSender(block, blockOffset, length,
+            datanode, clientTraceFmt);
       } catch(IOException e) {
         String msg = "opReadBlock " + block + " received exception " + e;
         LOG.info(msg);
@@ -602,7 +603,7 @@ class DataXceiver extends Receiver implements Runnable {
       // writeSuccessWithChecksumInfo(blockSender, new DataOutputStream(getOutputStream()));
 
       long beginRead = Time.monotonicNow();
-      read = blockSender.sendBlock(out, baseStream, null); // send data
+      read = blockSender.sendBlock(out, null); // send data
       long duration = Time.monotonicNow() - beginRead;
       IOUtils.closeStream(out);
       datanode.metrics.incrBytesRead((int) read);

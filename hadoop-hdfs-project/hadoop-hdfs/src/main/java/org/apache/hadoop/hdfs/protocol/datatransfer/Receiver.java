@@ -159,7 +159,8 @@ public abstract class Receiver implements DataTransferProtocol {
         break;
     }
     readBlockNetEC(
-      proto.getBlock(),
+      new ExtendedBlock[]{ proto.getBlock() },
+      null,
       proto.getClientName(),
       proto.getReadOffset(),
       proto.getReadLen()
