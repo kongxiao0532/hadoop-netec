@@ -83,6 +83,16 @@ public class Sender implements DataTransferProtocol {
     out.flush();
   }
 
+  private static void send(final DataOutputStream out, final Op opcode,
+    final NetECReadBlockProtocol[] protos) throws IOException {
+      LOG.trace("Sending NetEC op");
+      op(out, opcode);
+      for(NetECReadBlockProtocol proto : protos) {
+        proto.write(out);
+        out.flush();
+      }
+  }
+
   static private CachingStrategyProto getCachingStrategy(
       CachingStrategy cachingStrategy) {
     CachingStrategyProto.Builder builder = CachingStrategyProto.newBuilder();
@@ -114,6 +124,28 @@ public class Sender implements DataTransferProtocol {
         .build();
 
     send(out, Op.READ_BLOCK, proto);
+  }
+
+  @Override
+  public void readBlockNetEC(final ExtendedBlock[] blocks,
+      final DatanodeInfo[] sources,
+      final String clientName,
+      final long readOffset,
+      final long length) throws IOException {
+    int blockCount = blocks.length;
+    NetECReadBlockProtocol[] protos = new NetECReadBlockProtocol[blockCount];
+    for (int i = 0;i < blocks.length;i++) {
+      protos[i] = new NetECReadBlockProtocol(
+        sources[i].getIpAddr(),
+        blocks[i].getBlockPoolId(),
+        blocks[i].getBlockId(),
+        blocks[i].getNumBytes(),
+        blocks[i].getGenerationStamp(),
+        clientName,
+        readOffset,
+        length
+      );
+    }
   }
 
 

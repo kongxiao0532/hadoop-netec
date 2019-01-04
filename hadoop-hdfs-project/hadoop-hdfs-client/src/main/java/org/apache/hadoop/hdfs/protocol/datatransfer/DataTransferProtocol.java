@@ -77,14 +77,16 @@ public interface DataTransferProtocol {
   /**
    * Read a block for NetEC reconstruction.
    *
-   * @param blk the block being read.
+   * @param blks the blocks being read.
+   * @param source source datanodes
    * @param clientName client's name.
-   * @param blockOffset offset of the block.
+   * @param readOffset offset of the block.
    * @param length maximum number of bytes for this read.
    */
-  void readBlockNetEC(final ExtendedBlock blk,
+  void readBlockNetEC(final ExtendedBlock[] blks,
+      final DatanodeInfo[] sources,
       final String clientName,
-      final long blockOffset,
+      final long readOffset,
       final long length) throws IOException;
 
   /**

@@ -130,8 +130,8 @@ public final class ErasureCodingWorker {
             reconInfo.getTargetStorageIDs());
         // It may throw IllegalArgumentException from task#stripedReader
         // constructor.
-        final StripedBlockReconstructor task =
-            new StripedBlockReconstructor(this, stripedReconInfo);
+        final NetECStripedBlockReconstructor task =
+            new NetECStripedBlockReconstructor(this, stripedReconInfo);
         if (task.hasValidTargets()) {
           // See HDFS-12044. We increase xmitsInProgress even the task is only
           // enqueued, so that
