@@ -149,8 +149,9 @@ public abstract class Receiver implements DataTransferProtocol {
   /** Receive OP_READ_BLOCK_NETEC */
   private void opReadBlockNetec(DatanodeID id) throws IOException {
     NetECReadBlockProtocol proto;
+    int protoRead = 0;
     while (true) {
-      proto = NetECReadBlockProtocol.parseFrom(in);
+      proto = NetECReadBlockProtocol.parseFrom(in, protoRead++ == 0);
       if (proto == null) {
         LOG.error("Error in class Receiver.opReadBlockNetec, no corresponding proto header found.\n");
         return;

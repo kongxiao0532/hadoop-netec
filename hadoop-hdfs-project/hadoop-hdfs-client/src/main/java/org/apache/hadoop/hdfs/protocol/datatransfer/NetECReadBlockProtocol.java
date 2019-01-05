@@ -1,12 +1,15 @@
 package org.apache.hadoop.hdfs.protocol.datatransfer;
 
+import java.nio.ByteBuffer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import org.slf4j.Logger;
 
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.hdfs.util.ByteUtils;
+import org.slf4j.LoggerFactory;
 
 /**
  * Simplified information about reading a block
@@ -17,6 +20,8 @@ public class NetECReadBlockProtocol {
    *  dnIP |poolId|blkId|blkLen|genStamp|clientName|readOffset|readLen
    * 15byte|10byte|8byte|8 byte| 8 byte | 40 byte  |  8 byte  | 8 byte
    */
+  private static final Logger LOG =
+  LoggerFactory.getLogger(NetECReadBlockProtocol.class);
 
   private final String datanodeIP;
   /* ExtendedBlock */
@@ -54,13 +59,27 @@ public class NetECReadBlockProtocol {
     this.clientName = clientName;
     this.readOffset = readOffset;
     this.readLen = readLen;
+    LOG.info("NetECReadBlockProtocol:" +
+      "\ndatanodeIP: " + datanodeIP +
+      "\npoolId: " + poolId +
+      "\nblkId: " + blkId +
+      "\nblkLen: " + blkLen +
+      "\ngenStamp: " + genStamp +
+      "\nclientName: " + clientName +
+      "\nreadOffset: " + readOffset +
+      "\nreadLen: " + readLen
+    );
   }
 
-  public static NetECReadBlockProtocol parseFrom(InputStream in) throws IOException {
+  public static NetECReadBlockProtocol parseFrom(InputStream in, boolean firstProtoPacket) throws IOException {
+    int packetSize = PACKET_SIZE;
+    if (firstProtoPacket) {
+      packetSize -= 3;
+    }
     /* read all data into buffer */
-    byte[] buf = new byte[PROTO_LEN];
+    byte[] buf = new byte[packetSize];
     int byteRead = in.read(buf);
-    if (byteRead != PROTO_LEN) {
+    if (byteRead != packetSize) {
       // error
       return null;
     }
@@ -110,14 +129,14 @@ public class NetECReadBlockProtocol {
       pBlkId, pBlkLen, pGenStamp, pClientName, pReadOffset, pReadLen);
   }
 
-  public void write(OutputStream out) throws IOException {
+  private byte[] getBytes(final int size) {
     /* Write all data into buffer */
-    byte[] buf = new byte[PACKET_SIZE];
+    byte[] buf = new byte[size];
     int bufPos = 0;
     /* datanodeIP */
     /* arraycopy(src, srcPos, dest, destPos, length) */
     System.arraycopy(ByteUtils.string2Bytes(datanodeIP), 0,
-      buf, bufPos, poolId.length());
+      buf, bufPos, datanodeIP.length());
     bufPos += DNIP_BYTE_SIZE;
     /* poolId */
     System.arraycopy(ByteUtils.string2Bytes(poolId), 0,
@@ -148,9 +167,22 @@ public class NetECReadBlockProtocol {
       buf, bufPos, LONG_BYTE_SIZE);
     bufPos += LONG_BYTE_SIZE;
 
+    return buf;
+  }
+
+  public void write(OutputStream out, final short protoVersion, final Op opCode) throws IOException {
+    byte[] packet = getBytes(PACKET_SIZE - 3);
+    ByteBuffer buffer = ByteBuffer.allocate(PACKET_SIZE);
+    buffer.putShort(protoVersion);
+    buffer.put(opCode.code);
+    buffer.put(packet);
+    out.write(buffer.array());
+  }
+
+  public void write(OutputStream out) throws IOException {
+    byte[] buf = getBytes(PACKET_SIZE);
     /* write out */
     out.write(buf);
-    // out.flush();
   }
 
   public String getDatanodeIP() {

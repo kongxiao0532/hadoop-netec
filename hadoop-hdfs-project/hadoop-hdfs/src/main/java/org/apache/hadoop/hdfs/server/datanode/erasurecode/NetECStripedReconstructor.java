@@ -97,7 +97,6 @@ abstract class NetECStripedReconstructor {
 
   // position in striped internal block
   private long positionInBlock;
-  private StripedReader stripedReader;
   private ErasureCodingWorker erasureCodingWorker;
   private long maxTargetLength = 0L;
 
@@ -180,9 +179,9 @@ abstract class NetECStripedReconstructor {
         datanode.getDnConf().getConnectToDnViaHostname()));
   }
 
-  int getBufferSize() {
-    return stripedReader.getBufferSize();
-  }
+  // int getBufferSize() {
+  //   return stripedReader.getBufferSize();
+  // }
 
   CompletionService<Void> createReadService() {
     return erasureCodingWorker.createReadService();
@@ -196,7 +195,7 @@ abstract class NetECStripedReconstructor {
    * Get the xmits that _will_ be used for this reconstruction task.
    */
   int getXmits() {
-    return stripedReader.getXmits();
+    return 1;
   }
 
   long getMaxTargetLength() {

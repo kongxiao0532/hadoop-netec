@@ -97,7 +97,7 @@ class NetECStripedBlockReconstructor extends NetECStripedReconstructor
       infos[i] = stripedReconInfo.getSources()[i];
     }
 
-    InetSocketAddress switchAddress = new InetSocketAddress("1.1.1.1", 9866);
+    InetSocketAddress switchAddress = new InetSocketAddress("10.0.0.10", 9866);
 
     stripedBlockReader = new NetECStripedBlockReader(this, getDatanode(), getConf(),
         blocks, infos, switchAddress);

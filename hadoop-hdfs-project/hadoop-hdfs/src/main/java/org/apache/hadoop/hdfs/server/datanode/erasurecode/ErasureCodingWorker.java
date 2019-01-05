@@ -66,9 +66,10 @@ public final class ErasureCodingWorker {
             ", it can not be negative value (" + this.xmitWeight + ").");
 
     initializeStripedReadThreadPool();
-    initializeStripedBlkReconstructionThreadPool(conf.getInt(
-        DFSConfigKeys.DFS_DN_EC_RECONSTRUCTION_THREADS_KEY,
-        DFSConfigKeys.DFS_DN_EC_RECONSTRUCTION_THREADS_DEFAULT));
+    initializeStripedBlkReconstructionThreadPool(1);
+    // initializeStripedBlkReconstructionThreadPool(conf.getInt(
+    //     DFSConfigKeys.DFS_DN_EC_RECONSTRUCTION_THREADS_KEY,
+    //     DFSConfigKeys.DFS_DN_EC_RECONSTRUCTION_THREADS_DEFAULT));
   }
 
   private void initializeStripedReadThreadPool() {
@@ -105,7 +106,7 @@ public final class ErasureCodingWorker {
   private void initializeStripedBlkReconstructionThreadPool(int numThreads) {
     LOG.debug("Using striped block reconstruction; pool threads={}",
         numThreads);
-    stripedReconstructionPool = DFSUtilClient.getThreadPoolExecutor(2,
+    stripedReconstructionPool = DFSUtilClient.getThreadPoolExecutor(1,
         numThreads, 60, new LinkedBlockingQueue<>(),
         "StripedBlockReconstruction-", false);
     stripedReconstructionPool.allowCoreThreadTimeOut(true);
@@ -138,7 +139,8 @@ public final class ErasureCodingWorker {
           //   1) NN will not send more tasks than what DN can execute and
           //   2) DN will not throw away reconstruction tasks, and instead keeps
           //      an unbounded number of tasks in the executor's task queue.
-          xmitsSubmitted = Math.max((int)(task.getXmits() * xmitWeight), 1);
+          // xmitsSubmitted = Math.max((int)(task.getXmits() * xmitWeight), 1);
+          xmitsSubmitted = 1;
           getDatanode().incrementXmitsInProcess(xmitsSubmitted);
           stripedReconstructionPool.submit(task);
         } else {
