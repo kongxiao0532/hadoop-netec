@@ -282,7 +282,7 @@ class NetECBlockSender implements java.io.Closeable {
    * @param throttler used for throttling data transfer bandwidth
    */
   private int sendPackets(ByteBuffer pkt, OutputStream out, int packetAtATime,
-    DataTransferThrottler throttler) {
+  DataTransferThrottler throttler) throws IOException {
 
     int packetLen = PACKET_SIZE;
     int headerLen = NetECPacketHeader.HEADER_LENGTH;
