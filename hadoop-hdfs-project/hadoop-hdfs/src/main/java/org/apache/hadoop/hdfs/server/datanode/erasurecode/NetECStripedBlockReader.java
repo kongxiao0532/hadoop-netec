@@ -102,6 +102,7 @@ class NetECStripedBlockReader {
     if (tmpBlockReader != null) {
       this.blockReader = tmpBlockReader;
     }
+    LOG.info("\nNetECStripedBlockReader: initialize ok\n");
   }
 
   ByteBuffer getReadBuffer() {

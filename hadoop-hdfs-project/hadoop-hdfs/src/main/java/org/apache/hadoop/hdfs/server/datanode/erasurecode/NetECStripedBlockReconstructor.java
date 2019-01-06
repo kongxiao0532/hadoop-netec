@@ -49,6 +49,7 @@ class NetECStripedBlockReconstructor extends NetECStripedReconstructor
 
     // stripedWriter = new StripedWriter(this, getDatanode(),
     //     getConf(), stripedReconInfo);
+    setMaxTargetLength(getBlockLen(0));
   }
 
   boolean hasValidTargets() {
@@ -101,6 +102,7 @@ class NetECStripedBlockReconstructor extends NetECStripedReconstructor
 
     stripedBlockReader = new NetECStripedBlockReader(this, getDatanode(), getConf(),
         blocks, infos, switchAddress);
+    LOG.info("\nNetECStripedBlockReconstructor: exiting initStripedBlockReader()\n");
   }
 
   void closeStripedBlockReader() {
@@ -111,6 +113,8 @@ class NetECStripedBlockReconstructor extends NetECStripedReconstructor
 
   @Override
   void reconstruct() throws IOException {
+    LOG.info("\nNetECStripedBlockReconstructor: entering reconstruct()\n");
+    LOG.info("\nNetECStripedBlockReconstructor: positionInBlock: " + getPositionInBlock() + ", maxTargetLength: " + getMaxTargetLength()+ "\n");
     while (getPositionInBlock() < getMaxTargetLength()) {
       DataNodeFaultInjector.get().stripedBlockReconstruction();
       long remaining = getMaxTargetLength() - getPositionInBlock();

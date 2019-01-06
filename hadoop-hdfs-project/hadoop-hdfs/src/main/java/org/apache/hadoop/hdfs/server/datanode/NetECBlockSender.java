@@ -81,7 +81,7 @@ class NetECBlockSender implements java.io.Closeable {
   /** the block to read from */
   private final ExtendedBlock block;
 
-  private static final int PACKET_SIZE = 128;
+  private static final int PACKET_SIZE = NetECPacketHeader.PACKET_SIZE;
   private static final int PACKET_AT_A_TIME = 100;
 
   /** InputStreams and file descriptors to read block/checksum. */
@@ -450,8 +450,8 @@ class NetECBlockSender implements java.io.Closeable {
    */
   private void writePacketHeader(ByteBuffer pkt, int dataLen, int pos, boolean lastPacket) {
     // both syncBlock and syncPacket are false
-    NetECPacketHeader header = new NetECPacketHeader(offset, seqno,
-    lastPacket, dataLen);
+    NetECPacketHeader header = new NetECPacketHeader(/*offset, */seqno/*,
+    lastPacket, dataLen*/);
 
     pkt.position(pos);
     pkt.put(header.getBytes());

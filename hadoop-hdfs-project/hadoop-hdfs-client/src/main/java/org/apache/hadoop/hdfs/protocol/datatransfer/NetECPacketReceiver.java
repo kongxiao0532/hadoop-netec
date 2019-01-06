@@ -47,7 +47,7 @@ public class NetECPacketReceiver implements Closeable {
   private final boolean useDirectBuffers;
 
 
-  private static final int PACKET_SIZE = 128;
+  private static final int PACKET_SIZE = NetECPacketHeader.PACKET_SIZE;
   /**
    * The entirety of the most recently read packet.
    * The first PKT_LENGTHS_LEN bytes of this buffer are the
@@ -67,7 +67,7 @@ public class NetECPacketReceiver implements Closeable {
 
   public NetECPacketReceiver(boolean useDirectBuffers) {
     this.useDirectBuffers = useDirectBuffers;
-    reallocPacketBuf(NetECPacketHeader.HEADER_LENGTH);
+    reallocPacketBuf(PACKET_SIZE);
   }
 
   public NetECPacketHeader getHeader() {
@@ -105,7 +105,7 @@ public class NetECPacketReceiver implements Closeable {
     //
     // HEADER:    the actual packet header fields
     // DATA       the actual block data
-    Preconditions.checkState(curHeader == null || !curHeader.isLastPacketInBlock());
+    Preconditions.checkState(curHeader == null/* || !curHeader.isLastPacketInBlock()*/);
 
     curPacketBuf.clear();
     curPacketBuf.limit(PACKET_SIZE);

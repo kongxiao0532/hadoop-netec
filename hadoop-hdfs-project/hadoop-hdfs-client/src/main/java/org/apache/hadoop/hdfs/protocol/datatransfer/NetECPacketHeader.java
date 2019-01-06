@@ -51,39 +51,42 @@ public class NetECPacketHeader {
 
   private int packetLen;
   /* header */
-  private long offsetInBlock;
+  // private long offsetInBlock;
   private long seqno;
-  private boolean lastPacketInBlock;
-  private int dataLen;
+  // private boolean lastPacketInBlock;
+  // private int dataLen;
 
   public static final int HEADER_LENGTH =
-    Long.BYTES + Long.BYTES + 1 + Integer.BYTES;
+    Long.BYTES/* + Long.BYTES + 1 + Integer.BYTES*/;
+
+  public static final int PACKET_SIZE = 128;
+  public static final int DATA_SIZE = PACKET_SIZE - HEADER_LENGTH;
 
   public NetECPacketHeader() {
   }
 
-  public NetECPacketHeader(long offsetInBlock, long seqno,
-                      boolean lastPacketInBlock, int dataLen) {
-    this.offsetInBlock = offsetInBlock;
+  public NetECPacketHeader(/*long offsetInBlock, */long seqno/*,
+                       boolean lastPacketInBlock, int dataLen */) {
+    // this.offsetInBlock = offsetInBlock;
     this.seqno = seqno;
-    this.lastPacketInBlock = lastPacketInBlock;
-    this.dataLen = dataLen;
+    // this.lastPacketInBlock = lastPacketInBlock;
+    // this.dataLen = dataLen;
   }
 
   public int getDataLen() {
-    return this.dataLen;
+    return DATA_SIZE;
   }
 
-  public boolean isLastPacketInBlock() {
-    return this.isLastPacketInBlock();
-  }
+  // public boolean isLastPacketInBlock() {
+  //   return this.isLastPacketInBlock();
+  // }
 
   public long getSeqno() {
     return this.seqno;
   }
 
   public long getOffsetInBlock() {
-    return this.offsetInBlock;
+    return DATA_SIZE * seqno;
   }
 
 
@@ -91,29 +94,29 @@ public class NetECPacketHeader {
   public String toString() {
     return "PacketHeader with packetLen=" + this.packetLen +
       " header data:" +
-      "\n\tOffsetInBlock: " + this.offsetInBlock +
+      // "\n\tOffsetInBlock: " + this.offsetInBlock +
       "\n\tSeqno: " + this.seqno +
-      "\n\tLastPacketInBlock: " + this.lastPacketInBlock +
-      "\n\tDataLen: " + this.dataLen
+      // "\n\tLastPacketInBlock: " + this.lastPacketInBlock +
+      // "\n\tDataLen: " + this.dataLen
       ;
   }
 
   public void setFieldsFromData(byte[] headerData) {
     int bufPos = 0;
-    /* offsetInBlock */
-    offsetInBlock = ByteUtils.bytes2Long(
-      Arrays.copyOfRange(headerData, bufPos, bufPos + Long.BYTES));
-    bufPos += Long.BYTES;
+    // /* offsetInBlock */
+    // offsetInBlock = ByteUtils.bytes2Long(
+    //   Arrays.copyOfRange(headerData, bufPos, bufPos + Long.BYTES));
+    // bufPos += Long.BYTES;
     /* seqno */
     seqno = ByteUtils.bytes2Long(
       Arrays.copyOfRange(headerData, bufPos, bufPos + Long.BYTES));
     bufPos += Long.BYTES;
-    /* lastPacketInBlock */
-    lastPacketInBlock = ByteUtils.byte2Boolean(headerData[bufPos]);
-    bufPos += 1;
-    /* dataLen */
-    dataLen = ByteUtils.bytes2Int(
-      Arrays.copyOfRange(headerData, bufPos, bufPos + Integer.BYTES));
+    // /* lastPacketInBlock */
+    // lastPacketInBlock = ByteUtils.byte2Boolean(headerData[bufPos]);
+    // bufPos += 1;
+    // /* dataLen */
+    // dataLen = ByteUtils.bytes2Int(
+    //   Arrays.copyOfRange(headerData, bufPos, bufPos + Integer.BYTES));
   }
 
   public void readFields(DataInputStream in) throws IOException {
@@ -126,22 +129,22 @@ public class NetECPacketHeader {
     /* Write all data into buffer */
     byte[] buf = new byte[HEADER_LENGTH];
     int bufPos = 0;
-    /* offsetInBlock */
-    /* arraycopy(src, srcPos, dest, destPos, length) */
-    System.arraycopy(ByteUtils.long2Bytes(offsetInBlock), 0,
-      buf, bufPos, Long.BYTES);
-    bufPos += Long.BYTES;
+    // /* offsetInBlock */
+    // /* arraycopy(src, srcPos, dest, destPos, length) */
+    // System.arraycopy(ByteUtils.long2Bytes(offsetInBlock), 0,
+    //   buf, bufPos, Long.BYTES);
+    // bufPos += Long.BYTES;
     /* seqno */
     System.arraycopy(ByteUtils.long2Bytes(seqno), 0,
       buf, bufPos, Long.BYTES);
     bufPos += Long.BYTES;
-    /* lastPacketInBlock */
-    System.arraycopy(ByteUtils.boolean2Bytes(lastPacketInBlock), 0,
-      buf, bufPos, 1);
-    bufPos += 1;
-    /* dataLen */
-    System.arraycopy(ByteUtils.int2Bytes(dataLen), 0,
-      buf, bufPos, Integer.BYTES);
+    // /* lastPacketInBlock */
+    // System.arraycopy(ByteUtils.boolean2Bytes(lastPacketInBlock), 0,
+    //   buf, bufPos, 1);
+    // bufPos += 1;
+    // /* dataLen */
+    // System.arraycopy(ByteUtils.int2Bytes(dataLen), 0,
+    //   buf, bufPos, Integer.BYTES);
     return buf;
   }
 
@@ -166,9 +169,9 @@ public class NetECPacketHeader {
    */
   public boolean sanityCheck(long lastSeqNo) {
     // We should only have a non-positive data length for the last packet
-    if (dataLen <= 0 && !lastPacketInBlock) return false;
+    // if (dataLen <= 0 && !lastPacketInBlock) return false;
     // The last packet should not contain data
-    if (lastPacketInBlock && dataLen != 0) return false;
+    // if (lastPacketInBlock && dataLen != 0) return false;
     // Seqnos should always increase by 1 with each packet received
     return seqno == lastSeqNo + 1;
   }
@@ -178,10 +181,10 @@ public class NetECPacketHeader {
     if (!(o instanceof NetECPacketHeader)) return false;
     NetECPacketHeader other = (NetECPacketHeader)o;
     return (
-      offsetInBlock == other.getOffsetInBlock() &&
-      seqno == other.getSeqno() &&
+      /* offsetInBlock == other.getOffsetInBlock() && */
+      seqno == other.getSeqno()/* &&
       lastPacketInBlock == other.isLastPacketInBlock() &&
-      dataLen == other.getDataLen()
+      dataLen == other.getDataLen() */
     );
   }
 

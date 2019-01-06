@@ -177,7 +177,7 @@ public class NetECBlockReaderRemote implements BlockReader {
 
     NetECPacketHeader curHeader = packetReceiver.getHeader();
     curDataSlice = packetReceiver.getDataSlice();
-    assert curDataSlice.capacity() == curHeader.getDataLen();
+    // assert curDataSlice.capacity() == curHeader.getDataLen();
 
     LOG.trace("DFSClient readNextPacket got header {}", curHeader);
 
@@ -239,11 +239,11 @@ public class NetECBlockReaderRemote implements BlockReader {
     packetReceiver.receiveNextPacket(in);
 
     NetECPacketHeader trailer = packetReceiver.getHeader();
-    if (!trailer.isLastPacketInBlock() ||
-        trailer.getDataLen() != 0) {
-      throw new IOException("Expected empty end-of-read packet! Header: " +
-          trailer);
-    }
+    // if (!trailer.isLastPacketInBlock() ||
+    //     trailer.getDataLen() != 0) {
+    //   throw new IOException("Expected empty end-of-read packet! Header: " +
+    //       trailer);
+    // }
   }
 
   protected NetECBlockReaderRemote(String file,
@@ -263,6 +263,7 @@ public class NetECBlockReaderRemote implements BlockReader {
     // to send more than this amount if the read starts/ends mid-chunk.
     this.bytesNeededToFinish = bytesToRead + startOffset;
     this.networkDistance = networkDistance;
+    LOG.info("\nNetECBlockReaderRemote: initialize ok\n");
   }
 
 
