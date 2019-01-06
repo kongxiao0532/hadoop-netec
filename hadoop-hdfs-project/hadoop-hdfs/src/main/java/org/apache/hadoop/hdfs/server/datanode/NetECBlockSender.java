@@ -282,7 +282,7 @@ class NetECBlockSender implements java.io.Closeable {
    * @param throttler used for throttling data transfer bandwidth
    */
   private int sendPackets(ByteBuffer pkt, OutputStream out, int packetAtATime,
-    DataTransferThrottler throttler) throws IOException {
+    DataTransferThrottler throttler) {
 
     int packetLen = PACKET_SIZE;
     int headerLen = NetECPacketHeader.HEADER_LENGTH;
@@ -306,14 +306,23 @@ class NetECBlockSender implements java.io.Closeable {
         pkt.limit(packetLen * (i + 1));
         break;
       } else {
-        if (offset < endOffset)
+        if (offset < endOffset){
           /** write data into buffer */
-          ris.readDataFully(buf, i * packetLen + headerLen, dataLen);
-        /** else */
+          LOG.info("NetECBlockSender: offset is " + offset + ", endOffset is " + endOffset + ", readLength is " + sendLength);
+          try{
+            ris.readDataFully(buf, i * packetLen + headerLen, dataLen);
+            offset += dataLen;
+            dataSent += dataLen;
+          } catch (IOException e){
+            dataSent += endOffset - offset;
+            offset = endOffset;
+            LOG.info("\nNetECBlockSender: all data sent\n");
+            LOG.error(e.toString());
+          }
+        } else {
           /** send no data */
-        /* statistics */
-        offset += dataLen;
-        dataSent += dataLen;
+          offset += dataLen;
+        }
         seqno++;
       }
     }

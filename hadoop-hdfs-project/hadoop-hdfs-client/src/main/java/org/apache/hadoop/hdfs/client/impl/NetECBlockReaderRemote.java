@@ -186,6 +186,7 @@ public class NetECBlockReaderRemote implements BlockReader {
       throw new IOException("BlockReader: error in packet header " +
           curHeader);
     }
+    lastSeqNo = curHeader.getSeqno();
 
     if (curHeader.getDataLen() > 0) {
       bytesNeededToFinish -= curHeader.getDataLen();

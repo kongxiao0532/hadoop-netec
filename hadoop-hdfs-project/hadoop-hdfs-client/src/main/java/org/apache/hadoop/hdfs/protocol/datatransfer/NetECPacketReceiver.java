@@ -105,11 +105,11 @@ public class NetECPacketReceiver implements Closeable {
     //
     // HEADER:    the actual packet header fields
     // DATA       the actual block data
-    Preconditions.checkState(curHeader == null/* || !curHeader.isLastPacketInBlock()*/);
 
     curPacketBuf.clear();
     curPacketBuf.limit(PACKET_SIZE);
     doReadFully(ch, in, curPacketBuf);
+    curPacketBuf.flip();
 
     // Extract the header from the front of the buffer (after the length prefixes)
     byte[] headerBuf = new byte[NetECPacketHeader.HEADER_LENGTH];

@@ -229,28 +229,28 @@ class DataXceiver extends Receiver implements Runnable {
       dataXceiverServer.addPeer(peer, Thread.currentThread(), this);
       peer.setWriteTimeout(datanode.getDnConf().socketWriteTimeout);
       InputStream input = socketIn;
-      try {
-        IOStreamPair saslStreams = datanode.saslServer.receive(peer, socketOut,
-          socketIn, datanode.getXferAddress().getPort(),
-          datanode.getDatanodeId());
-        input = new BufferedInputStream(saslStreams.in,
-            smallBufferSize);
-        socketOut = saslStreams.out;
-      } catch (InvalidMagicNumberException imne) {
-        if (imne.isHandshake4Encryption()) {
-          LOG.info("Failed to read expected encryption handshake from client " +
-              "at {}. Perhaps the client " +
-              "is running an older version of Hadoop which does not support " +
-              "encryption", peer.getRemoteAddressString(), imne);
-        } else {
-          LOG.info("Failed to read expected SASL data transfer protection " +
-              "handshake from client at {}" +
-              ". Perhaps the client is running an older version of Hadoop " +
-              "which does not support SASL data transfer protection",
-              peer.getRemoteAddressString(), imne);
-        }
-        return;
-      }
+      // try {
+      //   IOStreamPair saslStreams = datanode.saslServer.receive(peer, socketOut,
+      //     socketIn, datanode.getXferAddress().getPort(),
+      //     datanode.getDatanodeId());
+      //   input = new BufferedInputStream(saslStreams.in,
+      //       smallBufferSize);
+      //   socketOut = saslStreams.out;
+      // } catch (InvalidMagicNumberException imne) {
+      //   if (imne.isHandshake4Encryption()) {
+      //     LOG.info("Failed to read expected encryption handshake from client " +
+      //         "at {}. Perhaps the client " +
+      //         "is running an older version of Hadoop which does not support " +
+      //         "encryption", peer.getRemoteAddressString(), imne);
+      //   } else {
+      //     LOG.info("Failed to read expected SASL data transfer protection " +
+      //         "handshake from client at {}" +
+      //         ". Perhaps the client is running an older version of Hadoop " +
+      //         "which does not support SASL data transfer protection",
+      //         peer.getRemoteAddressString(), imne);
+      //   }
+      //   return;
+      // }
 
       super.initialize(new DataInputStream(input));
 
@@ -271,23 +271,28 @@ class DataXceiver extends Receiver implements Runnable {
           op = readOp();
         } catch (InterruptedIOException ignored) {
           // Time out while we wait for client rpc
+          LOG.error("\nDataXceiver: InterruptedIOException ignored, {}\n", ignored);
           break;
         } catch (EOFException | ClosedChannelException e) {
           // Since we optimistically expect the next op, it's quite normal to
           // get EOF here.
+          LOG.info("\nDataXceiver: EOFException | ClosedChannelException e\n");
           LOG.debug("Cached {} closing after {} ops.  " +
               "This message is usually benign.", peer, opsProcessed);
           break;
         } catch (IOException err) {
+          LOG.info("\nDataXceiver: IOException err\n");
           incrDatanodeNetworkErrors();
           throw err;
         }
 
         // restore normal timeout
         if (opsProcessed != 0) {
+          LOG.info("\nDataXceiver: opsProcessed != 0\n");
           peer.setReadTimeout(dnConf.socketTimeout);
         }
 
+        LOG.info("\nDataXceiver: gonna monotonicNow() != 0\n");
         opStartTime = monotonicNow();
         LOG.info("\nDataXceiver: gonna process op!\n");
         processOp(op, datanode.getDatanodeId());

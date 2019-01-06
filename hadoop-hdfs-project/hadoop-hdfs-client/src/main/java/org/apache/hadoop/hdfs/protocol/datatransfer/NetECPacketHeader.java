@@ -95,7 +95,7 @@ public class NetECPacketHeader {
     return "PacketHeader with packetLen=" + this.packetLen +
       " header data:" +
       // "\n\tOffsetInBlock: " + this.offsetInBlock +
-      "\n\tSeqno: " + this.seqno +
+      "\n\tSeqno: " + this.seqno
       // "\n\tLastPacketInBlock: " + this.lastPacketInBlock +
       // "\n\tDataLen: " + this.dataLen
       ;
