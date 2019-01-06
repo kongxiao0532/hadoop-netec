@@ -353,16 +353,16 @@ public class NetECBlockReaderRemote implements BlockReader {
         peer.getOutputStream()));
     new Sender(out).readBlockNetEC(blocks, sources, clientName, startOffset, len);
 
-    //
-    // Get bytes in block
-    //
-    DataInputStream in = new DataInputStream(peer.getInputStream());
+    // //
+    // // Get bytes in block
+    // //
+    // DataInputStream in = new DataInputStream(peer.getInputStream());
 
-    BlockOpResponseProto status = BlockOpResponseProto.parseFrom(
-        PBHelperClient.vintPrefixed(in));
-    checkSuccess(status, peer, file);
-    ReadOpChecksumInfoProto checksumInfo =
-        status.getReadOpChecksumInfo();
+    // BlockOpResponseProto status = BlockOpResponseProto.parseFrom(
+    //     PBHelperClient.vintPrefixed(in));
+    // checkSuccess(status, peer, file);
+    // ReadOpChecksumInfoProto checksumInfo =
+    //     status.getReadOpChecksumInfo();
 
 
     return new NetECBlockReaderRemote(file, startOffset, len, peer, networkDistance);

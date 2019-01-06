@@ -136,12 +136,14 @@ public class Sender implements DataTransferProtocol {
         length
       );
     }
+    LOG.info("Sending READ_BLOCK_NETEC operation. " + blockCount + " protos to send.");
     // send out
-    for(int i = 0;i < protos.length;i++) {
+    for(int i = 0;i < blockCount;i++) {
       if (i == 0)
         protos[i].write(out, (short)DataTransferProtocol.DATA_TRANSFER_VERSION, Op.READ_BLOCK_NETEC);
       else
         protos[i].write(out);
+      out.flush();
     }
   }
 

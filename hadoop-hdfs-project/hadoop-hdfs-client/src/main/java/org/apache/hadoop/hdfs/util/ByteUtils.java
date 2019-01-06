@@ -6,6 +6,16 @@ import java.nio.charset.Charset;
 
 public class ByteUtils {
 
+  public static byte short2Byte(short x) {
+    return (byte) (x & 0xFF);
+  }
+
+  public static short byte2Short(byte b) {
+    if (b >= 128)
+      return -1;
+    return (short) b;
+  }
+
   public static byte[] int2Bytes(int x) {
     return ByteBuffer.allocate(Integer.BYTES).putInt(x).array();
   }

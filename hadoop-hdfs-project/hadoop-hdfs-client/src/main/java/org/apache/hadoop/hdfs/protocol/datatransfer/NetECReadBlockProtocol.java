@@ -17,8 +17,8 @@ import org.slf4j.LoggerFactory;
  */
 public class NetECReadBlockProtocol {
   /**
-   *  dnIP |poolId|blkId|blkLen|genStamp|clientName|readOffset|readLen
-   * 15byte|10byte|8byte|8 byte| 8 byte | 40 byte  |  8 byte  | 8 byte
+   * string_lens| dnIP |poolId|blkId|blkLen|genStamp|clientName|readOffset|readLen
+   *  1+1+1 byte|15byte|10byte|8byte|8 byte| 8 byte | 40 byte  |  8 byte  | 8 byte
    */
   private static final Logger LOG =
   LoggerFactory.getLogger(NetECReadBlockProtocol.class);
@@ -37,10 +37,11 @@ public class NetECReadBlockProtocol {
   private static final int PACKET_SIZE = 128;
   private static final int LONG_BYTE_SIZE = Long.BYTES;
   private static final int DNIP_BYTE_SIZE = 15;
-  private static final int POOLID_BYTE_SIZE = 10;
-  private static final int CLIENTNAME_BYTE_SIZE = 40;
+  private static final int POOLID_BYTE_SIZE = 40;
+  private static final int CLIENTNAME_BYTE_SIZE = 10;
+  private static final int STRING_LEN = 1 * 3;
   private static final int PROTO_LEN =
-    DNIP_BYTE_SIZE + POOLID_BYTE_SIZE + CLIENTNAME_BYTE_SIZE + 5 * LONG_BYTE_SIZE;
+    DNIP_BYTE_SIZE + POOLID_BYTE_SIZE + CLIENTNAME_BYTE_SIZE + 5 * LONG_BYTE_SIZE + STRING_LEN;
   private static final int PADDING_LEN = PACKET_SIZE - PROTO_LEN;
 
 
@@ -72,6 +73,7 @@ public class NetECReadBlockProtocol {
   }
 
   public static NetECReadBlockProtocol parseFrom(InputStream in, boolean firstProtoPacket) throws IOException {
+    LOG.info("\nparsing... and it is " + firstProtoPacket + " that this is the first proto packet.\n");
     int packetSize = PACKET_SIZE;
     if (firstProtoPacket) {
       packetSize -= 3;
@@ -84,15 +86,20 @@ public class NetECReadBlockProtocol {
       return null;
     }
     int bufPos = 0;
+    /* string lengths */
+    short dnIPLength, poolIdLength, clientNameLength;
+    dnIPLength = ByteUtils.byte2Short(buf[bufPos++]);
+    poolIdLength = ByteUtils.byte2Short(buf[bufPos++]);
+    clientNameLength = ByteUtils.byte2Short(buf[bufPos++]);
     /* dnIP */
     final String pDatanodeIP = ByteUtils.bytes2String(
       Arrays.copyOfRange(buf, bufPos,
-      bufPos + DNIP_BYTE_SIZE));
+      bufPos + dnIPLength));
     bufPos += DNIP_BYTE_SIZE;
     /* poolId */
     final String pPoolId = ByteUtils.bytes2String(
       Arrays.copyOfRange(buf, bufPos,
-      bufPos + POOLID_BYTE_SIZE));
+      bufPos + poolIdLength));
     bufPos += POOLID_BYTE_SIZE;
     /* blkId */
     final long pBlkId = ByteUtils.bytes2Long(
@@ -112,7 +119,7 @@ public class NetECReadBlockProtocol {
     /* clientName */
     final String pClientName = ByteUtils.bytes2String(
       Arrays.copyOfRange(buf, bufPos,
-      bufPos + CLIENTNAME_BYTE_SIZE));
+      bufPos + clientNameLength));
     bufPos += CLIENTNAME_BYTE_SIZE;
     /* readOffset */
     final long pReadOffset = ByteUtils.bytes2Long(
@@ -133,6 +140,10 @@ public class NetECReadBlockProtocol {
     /* Write all data into buffer */
     byte[] buf = new byte[size];
     int bufPos = 0;
+    /* String length * 3 */
+    buf[bufPos++] = ByteUtils.short2Byte((short)datanodeIP.length());
+    buf[bufPos++] = ByteUtils.short2Byte((short)poolId.length());
+    buf[bufPos++] = ByteUtils.short2Byte((short)clientName.length());
     /* datanodeIP */
     /* arraycopy(src, srcPos, dest, destPos, length) */
     System.arraycopy(ByteUtils.string2Bytes(datanodeIP), 0,
@@ -171,6 +182,10 @@ public class NetECReadBlockProtocol {
   }
 
   public void write(OutputStream out, final short protoVersion, final Op opCode) throws IOException {
+    LOG.info("write:" +
+      "\nprotoVersion: " + protoVersion +
+      "\nopCode: " + opCode
+    );
     byte[] packet = getBytes(PACKET_SIZE - 3);
     ByteBuffer buffer = ByteBuffer.allocate(PACKET_SIZE);
     buffer.putShort(protoVersion);
@@ -180,6 +195,7 @@ public class NetECReadBlockProtocol {
   }
 
   public void write(OutputStream out) throws IOException {
+    LOG.info("\nWriting NetECReadBlockProtocol to outputstream");
     byte[] buf = getBytes(PACKET_SIZE);
     /* write out */
     out.write(buf);

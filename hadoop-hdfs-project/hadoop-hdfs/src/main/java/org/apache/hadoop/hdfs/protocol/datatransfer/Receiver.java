@@ -68,7 +68,9 @@ public abstract class Receiver implements DataTransferProtocol {
 
   /** Read an Op.  It also checks protocol version. */
   protected final Op readOp() throws IOException {
+    LOG.info("\nReceiver: Reading OP...\n");
     final short version = in.readShort();
+    LOG.info("\nReceiver: version is " + version + "\n");
     if (version != DataTransferProtocol.DATA_TRANSFER_VERSION) {
       throw new IOException( "Version Mismatch (Expected: " +
           DataTransferProtocol.DATA_TRANSFER_VERSION  +
@@ -99,6 +101,7 @@ public abstract class Receiver implements DataTransferProtocol {
 
   /** Process op by the corresponding method. */
   protected final void processOp(Op op, DatanodeID id) throws IOException {
+    LOG.info("\nReceiver: Processing op: " + op.code + "\n");
     switch(op) {
     case READ_BLOCK:
       opReadBlock();
@@ -149,6 +152,7 @@ public abstract class Receiver implements DataTransferProtocol {
   /** Receive OP_READ_BLOCK_NETEC */
   private void opReadBlockNetec(DatanodeID id) throws IOException {
     NetECReadBlockProtocol proto;
+    LOG.info("\nReceiver: OP_READ_BLOCK_NETEC received\n");
     int protoRead = 0;
     while (true) {
       proto = NetECReadBlockProtocol.parseFrom(in, protoRead++ == 0);
@@ -156,9 +160,11 @@ public abstract class Receiver implements DataTransferProtocol {
         LOG.error("Error in class Receiver.opReadBlockNetec, no corresponding proto header found.\n");
         return;
       }
-      if (proto.getDatanodeIP() == id.getIpAddr())
+      LOG.info("\nReceiver: We got packet for \"" + proto.getDatanodeIP() + "\", we are \"" + id.getIpAddr() + "\"\n");
+      if (proto.getDatanodeIP().equals(id.getIpAddr()))
         break;
     }
+    LOG.info("\nReceiver: got what we want!\n");
     readBlockNetEC(
       new ExtendedBlock[]{ proto.getBlock() },
       null,

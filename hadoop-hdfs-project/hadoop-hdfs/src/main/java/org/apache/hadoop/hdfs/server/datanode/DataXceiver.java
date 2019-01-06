@@ -218,6 +218,7 @@ class DataXceiver extends Receiver implements Runnable {
    */
   @Override
   public void run() {
+    LOG.info("\nDataXceiver: running new daemon!!!\n");
     int opsProcessed = 0;
     Op op = null;
 
@@ -266,6 +267,7 @@ class DataXceiver extends Receiver implements Runnable {
           } else {
             peer.setReadTimeout(dnConf.socketTimeout);
           }
+          LOG.info("\nDataXceiver: gonna read op!\n");
           op = readOp();
         } catch (InterruptedIOException ignored) {
           // Time out while we wait for client rpc
@@ -287,6 +289,7 @@ class DataXceiver extends Receiver implements Runnable {
         }
 
         opStartTime = monotonicNow();
+        LOG.info("\nDataXceiver: gonna process op!\n");
         processOp(op, datanode.getDatanodeId());
         ++opsProcessed;
       } while ((peer != null) &&

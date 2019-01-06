@@ -94,6 +94,8 @@ class NetECBlockSender implements java.io.Closeable {
   private long offset;
   /** Position of last byte to read from block file */
   private final long endOffset;
+  /** Bytes that we need to send out */
+  private final long sendLength;
   /** Number of bytes in chunk used for computing checksum */
   private final int chunkSize = PACKET_SIZE - NetECPacketHeader.HEADER_LENGTH;
   /** Sequence number of packet being sent */
@@ -176,18 +178,19 @@ class NetECBlockSender implements java.io.Closeable {
       volumeRef = datanode.data.getVolume(block).obtainReference();
 
       length = length < 0 ? replicaVisibleLength : length;
+      sendLength = length;
 
       // end is either last byte on disk or the length for which we have a
       // checksum
       long end = replica.getBytesOnDisk();
-      if (startOffset < 0 || startOffset > end
-          || (length + startOffset) > end) {
-        String msg = " Offset " + startOffset + " and length " + length
-        + " don't match block " + block + " ( blockLen " + end + " )";
-        LOG.warn(datanode.getDNRegistrationForBP(block.getBlockPoolId()) +
-            ":sendBlock() : " + msg);
-        throw new IOException(msg);
-      }
+      // if (startOffset < 0 || startOffset > end
+      //     || (length + startOffset) > end) {
+      //   String msg = " Offset " + startOffset + " and length " + length
+      //   + " don't match block " + block + " ( blockLen " + end + " )";
+      //   LOG.warn(datanode.getDNRegistrationForBP(block.getBlockPoolId()) +
+      //       ":sendBlock() : " + msg);
+      //   throw new IOException(msg);
+      // }
 
       // Ensure read offset is position at the beginning of chunk
       offset = startOffset - (startOffset % chunkSize);
@@ -292,19 +295,22 @@ class NetECBlockSender implements java.io.Closeable {
 
     for (int i = 0;i < packetAtATime;i++) {
       boolean lastPacket;
-      if (offset < endOffset)
+      if (offset < sendLength)
         lastPacket = false;
       else
         lastPacket = true;
-      /* write header into buffer */
+      /** write header into buffer */
       writePacketHeader(pkt, dataLen, packetLen * i, lastPacket);
       if (lastPacket) {
         /* stop writing data and send them all */
         pkt.limit(packetLen * (i + 1));
         break;
       } else {
-        /* write data into buffer */
-        ris.readDataFully(buf, i * packetLen + headerLen, dataLen);
+        if (offset < endOffset)
+          /** write data into buffer */
+          ris.readDataFully(buf, i * packetLen + headerLen, dataLen);
+        /** else */
+          /** send no data */
         /* statistics */
         offset += dataLen;
         dataSent += dataLen;
@@ -395,7 +401,7 @@ class NetECBlockSender implements java.io.Closeable {
 
       ByteBuffer pktBuf = ByteBuffer.allocate(pktBufSize);
 
-      while (endOffset > offset && !Thread.currentThread().isInterrupted()) {
+      while (offset < sendLength && !Thread.currentThread().isInterrupted()) {
         long dataLen = sendPackets(pktBuf, out, PACKET_AT_A_TIME, throttler);
         totalRead += dataLen;
       }
